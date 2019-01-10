@@ -26,9 +26,6 @@ const findMovies = connection.model('findMovies', moviesSchema);
 
 // Create a new MongoClient
 const client = new MongoClient(url);
-  
-  // Use connect method to connect to the Server
-
 
 const authentication = (req, res, next) => {
     return passport.authenticate('jwt', { session: false }, (err, user, info) => {
@@ -40,7 +37,8 @@ const authentication = (req, res, next) => {
 
 router.get('/movies', authentication, (req, res) => {
     const movies = req.user ? req.user.username : 'anonymous';
-    
+  
+  // Use connect method to connect to the Server
     client.connect(function(err) {
         assert.equal(null, err);
         console.log("Connected successfully to server");
@@ -62,7 +60,7 @@ router.get('/movies', authentication, (req, res) => {
         client.close();
     });
 
-    res.send({ message: `${movies}!` })
+    res.send({ message: `${movies}` })
 })
 
 module.exports = router;

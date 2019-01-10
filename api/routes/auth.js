@@ -7,6 +7,9 @@ const { jwtOptions } = require('../config');
 const mongoose = require('mongoose');
 const connection = mongoose.createConnection('mongodb://localhost:27017/myproject');
 
+// Database Name
+const dbName = 'myproject';
+
 // const USER = {
 //   id: '123456789',
 //   email: 'admin@example.com',
@@ -15,7 +18,7 @@ const connection = mongoose.createConnection('mongodb://localhost:27017/myprojec
 // }
 //Model for a user
 const userSchema = mongoose.Schema({
-  id: Number,
+  _id: mongoose.Schema.Types.ObjectId,
   name: {
       firstName: String,
       lastName: String
@@ -24,23 +27,25 @@ const userSchema = mongoose.Schema({
   password: String
 });
 
-let User = connection.model('User', userSchema);
-//Creation of user
-// const user = new User {
-//   id: 7,
-//   name: {
-//     firstName: 'Nathan',
-//     lastName: 'Gonzalez'
-//   },
-//   username: 'admin',
-//   password:'admin'
-// };
+const User = connection.model('User', userSchema);
 
-// user.save(function(err) {
-//   if (err) throw err;
+//Creation of user
+const user = new User ({
+  _id: new mongoose.Types.ObjectId(),
+  name: {
+    firstName: 'Nathan',
+    lastName: 'Gonzalez'
+  },
+  username: 'admin',
+  password:'admin'
+});
+
+// Saving user into database
+user.save(function(err) {
+  if (err) throw err;
    
-//   console.log('User successfully saved.');
-// };
+  console.log('User successfully saved.');
+});
 
 const router = express.Router();
 const LocalStrategy = passportLocal.Strategy;
@@ -53,11 +58,30 @@ passport.use(new LocalStrategy(
     passwordField: 'password',
   },
   (username, password, done) => {
-    // here you should make a database call
-    if (username === user.username && password === user.password) {
-      return done(null, USER);
-    }
-    return done(null, false);
+    client.connect(function(err) {
+      assert.equal(null, err);
+      console.log("Connected successfully to db server");
+
+      const db = client.db(dbName);
+
+      const col = db.collection('find');
+
+      db.collection.findOne()
+        .where('username')
+        .equals(username)
+        .then(res => { 
+          return done(null, res);
+        })
+        .catch(err => {
+          console.error(err);
+          return done(null, false);
+        });
+      // here you should make a database call
+      // if (username === user.username && password === user.password) {
+      //   return done(null, USER);
+      // }
+      // return done(null, false);
+    });
   },
 ));
 
@@ -68,10 +92,10 @@ passport.use(new JWTStrategy(
   },
   (jwtPayload, done) => {
     const { userId } = jwtPayload;
-    if (userId !== USER.id) {
+    if (userId !== user._id) {
       return done(null, false);
     }
-    return done(null, USER);
+    return done(null, user);
   },
 ));
 
