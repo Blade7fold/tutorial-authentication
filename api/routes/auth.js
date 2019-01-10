@@ -29,12 +29,6 @@ client.connect(function(err) {
     assert.equal(null, err);
     assert.equal(2, r.insertedCount);
   });
-  
-  col.find([{username:'admin'}, {password:'admin'}]).limit(2).toArray(function(err, docs) {
-    assert.equal(null, err);
-    assert.equal(2, docs.length);
-    client.close();
-  });
   client.close();
 });
 
