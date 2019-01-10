@@ -4,13 +4,43 @@ const passportLocal = require('passport-local');
 const passportJWT = require('passport-jwt');
 const jwt = require('jsonwebtoken');
 const { jwtOptions } = require('../config');
+const mongoose = require('mongoose');
+const connection = mongoose.createConnection('mongodb://localhost:27017/myproject');
 
-const USER = {
-  id: '123456789',
-  email: 'admin@example.com',
-  username: 'admin',
-  password: 'admin',
-}
+// const USER = {
+//   id: '123456789',
+//   email: 'admin@example.com',
+//   username: 'admin',
+//   password: 'admin',
+// }
+//Model for a user
+const userSchema = mongoose.Schema({
+  id: Number,
+  name: {
+      firstName: String,
+      lastName: String
+  },
+  username: String,
+  password: String
+});
+
+let User = connection.model('User', userSchema);
+//Creation of user
+// const user = new User {
+//   id: 7,
+//   name: {
+//     firstName: 'Nathan',
+//     lastName: 'Gonzalez'
+//   },
+//   username: 'admin',
+//   password:'admin'
+// };
+
+// user.save(function(err) {
+//   if (err) throw err;
+   
+//   console.log('User successfully saved.');
+// };
 
 const router = express.Router();
 const LocalStrategy = passportLocal.Strategy;
@@ -24,7 +54,7 @@ passport.use(new LocalStrategy(
   },
   (username, password, done) => {
     // here you should make a database call
-    if (username === USER.username && password === USER.password) {
+    if (username === user.username && password === user.password) {
       return done(null, USER);
     }
     return done(null, false);
